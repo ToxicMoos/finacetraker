@@ -2,10 +2,9 @@ package com.financial_tracker.financialtracker_springboot.controller;
 
 import com.financial_tracker.financialtracker_springboot.model.MyTransaction;
 import com.financial_tracker.financialtracker_springboot.service.TransactionService;
-
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,30 +15,33 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TransactionController {
 
-
-
     private final TransactionService transactionService;
 
     @PostMapping
-    public ResponseEntity<MyTransaction> addTransaction(@RequestBody MyTransaction transaction) {
-        if (transaction == null || transaction.getAmount() < 0) {
-            throw new IllegalArgumentException("Данные транзакции некорректны ");
-        }
+    public ResponseEntity<MyTransaction> addTransaction(@Valid @RequestBody  MyTransaction transaction) {
         return transactionService.createTransaction(transaction);
     }
 
     @GetMapping
-    public List<MyTransaction> getAllTransAction() {
-        return transactionService.getAllTransaction();
+    public List<MyTransaction> getAllTransActions() {
+        return transactionService.getAllTransactions();
     }
 
     @GetMapping("/{id}")
-    public MyTransaction getTransactionById(@PathVariable Long id) {
-        return transactionService.getTransactionById(id);
+    public ResponseEntity<MyTransaction> getTransactionById(@PathVariable Long id) {
+        return ResponseEntity.ok(transactionService.getTransactionById(id));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<MyTransaction> updateTransactionById(@PathVariable Long id,
+                                                               @Valid @RequestBody MyTransaction transaction){
+        MyTransaction updatedTransaction = transactionService.updateTransaction(id,transaction);
+        return ResponseEntity.ok(updatedTransaction);
     }
 
     @DeleteMapping("/{id}")
-    public void deleteById(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteById(@PathVariable Long id) {
         transactionService.deleteTransactionById(id);
+        return ResponseEntity.status(204).build();
     }
 }

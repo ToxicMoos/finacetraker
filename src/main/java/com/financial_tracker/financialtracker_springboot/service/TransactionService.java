@@ -2,71 +2,68 @@ package com.financial_tracker.financialtracker_springboot.service;
 
 import com.financial_tracker.financialtracker_springboot.model.MyTransaction;
 import com.financial_tracker.financialtracker_springboot.repository.TransactionRepository;
+import com.financial_tracker.financialtracker_springboot.validation.Validation;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.transaction.Transactional;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-
 @Service
+@RequiredArgsConstructor
 public class TransactionService {
-    private final Logger logger = LoggerFactory.getLogger(TransactionService.class);     //TransactionService.class
 
     private final TransactionRepository transactionRepository;
-
-    public TransactionService(TransactionRepository transactionRepository) {
-        this.transactionRepository = transactionRepository;
-    }
+    private final Validation validate;
 
     public ResponseEntity<MyTransaction> createTransaction(MyTransaction myTransaction) {
-        transactionRepository.save(myTransaction);
-        return ResponseEntity.ok().body(myTransaction);
+        validate.validateTransaction(myTransaction);
+        MyTransaction savedTransaction = transactionRepository.save(myTransaction);
+        return ResponseEntity.status(201).body(savedTransaction);
     }
 
-    public List<MyTransaction> getAllTransaction() {
+    public List<MyTransaction> getAllTransactions() {
         return transactionRepository.findAll();
     }
 
     public MyTransaction getTransactionById(Long id) {
-        if (id == null || id == 0) {
-            logger.error("ID или данные для обновления не могут быть null:" + id);
-            throw new IllegalArgumentException("ID не может быть null");
-        }
-        return transactionRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Транзакция с ID " + id + " не найдена"));
+        validate.validateId(id);
+        return transactionRepository.findById(id).orElseThrow(
+                () -> new EntityNotFoundException("Транзакция с ID " + id + " не найдена"));
     }
 
-
-    @Transactional
     public MyTransaction updateTransaction(Long id, MyTransaction updatedTransaction) {
-
-        validated(id);
+        validate.validateId(id);
+        validate.validateTransaction(updatedTransaction);
         MyTransaction myTransaction = transactionRepository
-                .findById(id).orElseThrow(() -> {
-                    logger.warn("Транзакция с ID {} не найдена", id);
-                    return new EntityNotFoundException("Транзакция с ID {} " + id + "не найдена ");
-                });
-        myTransaction.setAmount(updatedTransaction.getAmount());
-        myTransaction.setDate(updatedTransaction.getDate());
-        myTransaction.setType(updatedTransaction.getType());
-        myTransaction.setCategory(updatedTransaction.getCategory());
-        myTransaction.setDescription(updatedTransaction.getDescription());
+                .findById(id).orElseThrow(() -> new EntityNotFoundException("Транзакция с ID " + id + " не найдена "));
+
+        if (updatedTransaction.getAmount() != null) {
+            myTransaction.setAmount(updatedTransaction.getAmount());
+        }
+        if (updatedTransaction.getDate() != null) {
+            myTransaction.setDate(updatedTransaction.getDate());
+        }
+        if (updatedTransaction.getType() != null) {
+            myTransaction.setType(updatedTransaction.getType());
+        }
+        if (updatedTransaction.getCategory() != null) {
+            myTransaction.setCategory(updatedTransaction.getCategory());
+        }
+        if (updatedTransaction.getDescription() != null) {
+            myTransaction.setDescription(updatedTransaction.getDescription());
+        }
 
         return transactionRepository.save(myTransaction);
     }
 
     public void deleteTransactionById(Long id) {
-        validated(id);
+        validate.validateId(id);
+        if (!transactionRepository.existsById(id)) {
+            throw new EntityNotFoundException(" Транзакция с ID " + id + " не найдена ");
+        }
         transactionRepository.deleteById(id);
-    }
-
-    public void validated(Long id) {
-        logger.error("ID или данные для обновления не могут быть null или 0: " + id);
-        throw new IllegalArgumentException("ID не может быть null or 0");
     }
 
 }
