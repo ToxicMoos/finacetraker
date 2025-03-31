@@ -22,6 +22,7 @@ public class MyTransaction {
     private String category;    // Категория (например, "еда", "зарплата")
     private String description; // Описание
 
+
     @Override
     public String toString() {
         return "Transaction{" +
