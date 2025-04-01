@@ -1,5 +1,7 @@
 package com.financial_tracker.financialtracker_springboot.controller;
 
+import com.financial_tracker.financialtracker_springboot.dto.TransactionRequest;
+import com.financial_tracker.financialtracker_springboot.dto.TransactionResponse;
 import com.financial_tracker.financialtracker_springboot.model.MyTransaction;
 import com.financial_tracker.financialtracker_springboot.service.TransactionService;
 import jakarta.validation.Valid;
@@ -18,8 +20,8 @@ public class TransactionController {
     private final TransactionService transactionService;
 
     @PostMapping
-    public ResponseEntity<MyTransaction> addTransaction(@Valid @RequestBody  MyTransaction transaction) {
-        return transactionService.createTransaction(transaction);
+    public ResponseEntity<TransactionResponse> addTransaction(@Valid @RequestBody TransactionRequest transactionRequest) {
+        return ResponseEntity.status(201).body(transactionService.createTransaction(transactionRequest));
     }
 
     @GetMapping
