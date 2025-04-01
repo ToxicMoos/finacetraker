@@ -22,6 +22,10 @@ public class MyTransaction {
     private String category;    // Категория (например, "еда", "зарплата")
     private String description; // Описание
 
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private UserEntity user;
+
     @Override
     public String toString() {
         return "Transaction{" +
